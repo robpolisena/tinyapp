@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/robpolisena/tinyapp/issues"
   },
-  "homepage": "https://github.com/robpolisena/tinyapp#readme"
+  "homepage": "https://github.com/robpolisena/tinyapp#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
 }
