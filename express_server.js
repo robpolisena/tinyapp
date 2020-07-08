@@ -89,7 +89,7 @@ app.post("/register", (req, res) => {
   if (req.body.password === "") {
     res.status(400).send('Error: Please enter a password, please click your back button to continue');
   }
-  if (authenticateUser(req.body.email)) {
+  if (findUserByEmail(req.body.email)) {
     res.status(400).send('Error: This email already exists!');
   }
   console.log(req.body);
@@ -141,12 +141,12 @@ const findUserByEmail = (email) => {
   return false;
 };
 
-const authenticateUser = (email) => {
+const authenticateUser = (email, password) => {
   // Does the user with that email exist?
   const user = findUserByEmail(email);
 
   // check the email match
-  if (user.email === email) {
+  if (user && user.password === password) {
     return user;
   } else {
     return false;
@@ -156,18 +156,18 @@ const authenticateUser = (email) => {
 // Login the user
 app.post("/login", (req, res) => {
   console.log(req.body);
-  //const username = req.body.username;
   const email = req.body.email;
+  const password = req.body.password;
 
   // Authentication the user
-  const user = authenticateUser(email);
+  const user = authenticateUser(email, password);
   if (user) {
     // set the user id in the cookie
     res.cookie('user_id', user['id']);
     // res.redirect /urls
     res.redirect("/urls");
   } else {
-  //res.status(401).send('Wrong credentials');
+    res.status(403).send('Error: You have entered invalid credentials');
     res.redirect("/register");
   }
 });
