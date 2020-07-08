@@ -79,7 +79,13 @@ app.get("/urls/:shortURL", (req, res) => {
 
 app.post("/register", (req, res) => {
   if (req.body.email === "") {
-    res.json(`Please enter a valid email, please click your back button to continue`);
+    res.status(400).send('Error: Please enter a valid email, please click your back button to continue');
+  }
+  if (req.body.password === "") {
+    res.status(400).send('Error: Please enter a password, please click your back button to continue');
+  }
+  if (authenticateUser(req.body.email)) {
+    res.status(400).send('Error: This email already exists!');
   }
   console.log(req.body);
   console.log(req.params);
