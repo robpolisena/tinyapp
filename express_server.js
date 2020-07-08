@@ -107,11 +107,15 @@ app.post("/register", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
+  if (users[req.cookies['user_id']]) {
   console.log(req.body);
   generateRandomString();
   urlDatabase[shortURL] = req.body.longURL;
   res.redirect("/urls/" + shortURL);
   console.log(urlDatabase);
+  } else {
+    res.redirect("/login");
+  }
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
@@ -122,11 +126,15 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 app.post("/urls/:id", (req, res) => {
-  const longURL = req.body.longURL;
-  const shortURL = req.params.id;
-  urlDatabase[shortURL] = longURL;
-  let templateVars = { user: users[req.cookies['user_Id']]};
+  if (users[req.cookies['user_id']]) {
+    const longURL = req.body.longURL;
+    const shortURL = req.params.id;
+    urlDatabase[shortURL] = longURL;
+    let templateVars = { user: users[req.cookies['user_Id']]};
   res.redirect("/urls"), templateVars;
+  } else {
+    res.redirect("/login");
+  }
 });
 
 const findUserByEmail = (email) => {
