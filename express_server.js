@@ -16,9 +16,14 @@ const generateRandomString = () => {
   return shortURL;
 };
 
+// const urlDatabase = {
+//   "b2xVn2": "http://www.lighthouselabs.ca",
+//   "9sm5xK": "http://www.google.com"
+// };
+
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
+  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
 };
 
 const users = {
@@ -48,12 +53,16 @@ app.get("/hello", (req, res) => {
 
 app.get("/urls", (req, res) => {
   let templateVars;
-  if (req.cookies) {
-    console.log(`cookie: ${req.cookies['user_id']}`);
-    templateVars = { urls: urlDatabase, user: users[req.cookies['user_id']]};
-  } else {
-    templateVars = { urls: urlDatabase};
+  let longURLs = {};
+  //let shortURLs = {};
+for (let id in urlDatabase) {
+  if(req.cookies.user_id === urlDatabase[id].userId) {
+    longURLs[id] = urlDatabase[id].longURL
+    //shortURLs[id] = urlDatabase[id]
   }
+}  
+    templateVars = { urls: longURLs, user: users[req.cookies.user_id]};
+  
   res.render("urls_index", templateVars);
 });
 
@@ -78,6 +87,10 @@ app.get("/register", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
+  console.log(req.params.shortURL);
+  console.log(urlDatabase[req.params.shortURL]);
+  
+  
   let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user: users[req.cookies['user_id']]};
   res.render("urls_show", templateVars);
 });
@@ -106,13 +119,13 @@ app.post("/register", (req, res) => {
   res.redirect("/urls");
 });
 
-app.post("/urls", (req, res) => {
+app.post("/urls/", (req, res) => {
   if (users[req.cookies['user_id']]) {
-  console.log(req.body);
+  //console.log(req.body);
   generateRandomString();
   urlDatabase[shortURL] = req.body.longURL;
   res.redirect("/urls/" + shortURL);
-  console.log(urlDatabase);
+  //console.log(urlDatabase);
   } else {
     res.redirect("/login");
   }
@@ -127,6 +140,9 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 app.post("/urls/:id", (req, res) => {
   if (users[req.cookies['user_id']]) {
+    console.log(req.body.longURL);
+    console.log(req.params.id);
+    
     const longURL = req.body.longURL;
     const shortURL = req.params.id;
     urlDatabase[shortURL] = longURL;
