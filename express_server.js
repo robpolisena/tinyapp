@@ -5,6 +5,14 @@ const PORT = 8080; // default port 8080
 const cookieParser = require('cookie-parser');
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
+const bcrypt = require('bcryptjs');
+//const cookieSession = require('cookie-session');
+const saltRounds = 10;
+
+// app.use(cookieSession({
+//   name: 'session',
+//   keys: ['key1', 'key2']
+// }));
 
 app.use(cookieParser());
 app.set("view engine", "ejs");
@@ -33,21 +41,24 @@ const users = {
   "userRandomID": {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    password: bcrypt.hashSync("purple-monkey-dinosaur", saltRounds),
   },
   "user2RandomID": {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "dishwasher-funk"
+    password: bcrypt.hashSync("dishwasher-funk", saltRounds),
   }
 };
+
+
 
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
 app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
+  //res.json(urlDatabase);
+  res.json(users);
 });
 
 app.get("/hello", (req, res) => {
@@ -56,7 +67,7 @@ app.get("/hello", (req, res) => {
 
 app.get("/urls", (req, res) => {
   const userURLs = urlsForUserId(req.cookies.user_id);
-  const templateVars = { urls: userURLs, user: req.cookies.user_id};
+  const templateVars = { urls: userURLs, user: users[req.cookies['user_id']]};
   //user: users[req.cookies.user_id]
   res.render("urls_index", templateVars);
 });
@@ -120,13 +131,16 @@ app.post("/register", (req, res) => {
   users[userId] = {
     id: userId,
     email: req.body.email,
-    password: req.body.password
+    password:  bcrypt.hashSync(req.body.password, saltRounds),
   };
+  console.log(bcrypt.compareSync(req.body.password, users[userId].password));
   console.log(shortURL);
   console.log(`users: ${JSON.stringify(users)}`);
   res.cookie('user_id', userId);
   res.redirect("/urls");
 });
+
+
 
 app.post("/urls/", (req, res) => {
   if (users[req.cookies['user_id']]) {
@@ -187,14 +201,13 @@ const findUserByEmail = (email) => {
   return false;
 };
 
-
-
 const authenticateUser = (email, password) => {
   // Does the user with that email exist?
   const user = findUserByEmail(email);
 
   // check the email match
-  if (user && user.password === password) {
+  // if (user && user.password === password) {
+  if (user && bcrypt.compareSync(password, user.password)) {
     return user;
   } else {
     return false;
