@@ -1,5 +1,3 @@
-//const { users } = require('./express_server');
-
 const findUserByEmail = (email, database) => {
   // loop through the users in the db
   for (let userId in database) {
@@ -11,8 +9,5 @@ const findUserByEmail = (email, database) => {
   }
   return false;
 };
-
-//console.log(findUserByEmail("user@example.com", users));
-
 
 module.exports = findUserByEmail;
