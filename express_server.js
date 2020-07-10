@@ -5,7 +5,7 @@ const PORT = 8080; // default port 8080
 const findUserByEmail = require('./helpers');
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
-const bcrypt = require('bcryptjs')
+const bcrypt = require('bcryptjs');
 const cookieSession = require('cookie-session');
 const saltRounds = 10;
 
