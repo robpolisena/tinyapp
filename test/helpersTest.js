@@ -30,7 +30,7 @@ describe('findUserByEmail', function() {
 });
 
 describe('findUserByEmail', function() {
-  it('should return undefined if users email is not in databasel', function() {
+  it('should return undefined if the user email is not in databasel', function() {
     const user = findUserByEmail("user33@example.com", testUsers);
     const expectedOutput = undefined;
     // Write your assert statement here
