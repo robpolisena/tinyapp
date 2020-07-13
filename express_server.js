@@ -44,52 +44,73 @@ const users = {
   }
 };
 
+// When user accesses the root page
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  if (req.session['user_id']) {
+    res.redirect("/urls");
+  } else  {
+    res.redirect("/login");
+  }
 });
 
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
-
+// direct user to their main page with their URL's if logged in
 app.get("/urls", (req, res) => {
   const userURLs = urlsForUserId(req.session['user_id']);
   const templateVars = { urls: userURLs, user: users[req.session['user_id']]};
   res.render("urls_index", templateVars);
 });
-
+// directs user to their endpoint for the short URL
 app.get("/u/:shortURL", (req, res) => {
+  if (!urlDatabase[req.params.shortURL]) {
+    res.status(403);
+    res.send("Error: You have entered an invalid URL");
+  }
   if (users[req.session['user_id']]) {
     const longURL = urlDatabase[req.params.shortURL].longURL;
     res.redirect(longURL);
   } else {
-    const longURL = urlDatabase[req.params.shortURL].longURL;
-    res.redirect(longURL);
+    res.redirect("/urls");
   }
 });
-
+// directs user to create a new URL
 app.get("/urls/new", (req, res) => {
-  let templateVars = { user: users[req.session['user_id']]};
-  res.render("urls_new", templateVars);
+  if (req.session['user_id']) {
+    let templateVars = { user: users[req.session['user_id']]};
+    res.render("urls_new", templateVars);
+  } else {
+    res.redirect("/login");
+  }
 });
-
+// Login page
 app.get("/login", (req, res) => {
   let templateVars = { user: users[req.session['user_id']]};
   res.render("urls_login", templateVars);
 });
-
+// Registration page
 app.get("/register", (req, res) => {
   let templateVars = { user: users[req.session['user_id']]};
   res.render("urls_register", templateVars);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  if (users[req.session['user_id']]) {
+  
+  if (!urlDatabase[req.params.shortURL]) {
+    res.status(403);
+    res.send("Error: You have entered an invalid URL");
+  }
+  
+  let matchingUser = urlDatabase[req.params.shortURL].userID;
+  if (req.session.user_id !== matchingUser) {
+    res.status(403);
+    res.send("Error: You don't have permission to access this page");
+  } else if (users[req.session['user_id']]) {
     let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.session['user_id']]};
     res.render("urls_show", templateVars);
-  } else {
-    let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: null};
-    res.render("urls_show", templateVars);
+  }  else {
+    res.redirect("/urls");
   }
 });
 
@@ -115,6 +136,8 @@ app.post("/register", (req, res) => {
 });
 
 app.post("/urls/", (req, res) => {
+  
+  
   if (users[req.session['user_id']]) {
     generateRandomString();
     urlDatabase[shortURL] = {longURL: req.body.longURL, userID: req.session['user_id']};
@@ -143,7 +166,7 @@ app.post("/urls/:id", (req, res) => {
   }
 });
 
-// returns urls associated to the user
+// returns long urls associated to the user
 const urlsForUserId = (userID) => {
   let URLs = {};
   for (let id in urlDatabase) {
@@ -152,6 +175,7 @@ const urlsForUserId = (userID) => {
     }
   }  return URLs;
 };
+
 // valid if a user with this email exists
 const authenticateUser = (email, password) => {
   const user = findUserByEmail(email, users);
@@ -173,7 +197,6 @@ app.post("/login", (req, res) => {
     // set the user id in the cookie
     //res.cookie('user_id', user['id']);
     req.session['user_id'] = user.id;
-    // res.redirect /urls
     res.redirect("/urls");
   } else {
     res.status(403).send('Error: You have entered invalid credentials');
@@ -183,8 +206,8 @@ app.post("/login", (req, res) => {
 
 //logout the user
 app.post("/logout", (req, res) => {
-  //res.clearCookie('user_id');
-  req.session['user_id'] = null;
+  //clear the cookies on logout
+  req.session = null;
   res.redirect("/urls");
 });
 
